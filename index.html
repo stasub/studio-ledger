@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>スタジオ帳簿</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f6f5f2;--card:#fff;--tx:#222;--sub:#777;--ac:#2f6f5e;--in:#2f6f5e;--out:#c4553b;--bd:#e5e2dc;--warn:#a76a00}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#181a19;--card:#232625;--tx:#eee;--sub:#aaa;--ac:#5bb49c;--in:#5bb49c;--out:#e88a72;--bd:#333;--warn:#e1ad4f}}
+:root[data-theme="dark"]{--bg:#181a19;--card:#232625;--tx:#eee;--sub:#aaa;--ac:#5bb49c;--in:#5bb49c;--out:#e88a72;--bd:#333;--warn:#e1ad4f}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;padding-bottom:80px}
+.w{max-width:640px;margin:0 auto;padding:12px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px;margin-bottom:12px}
+.tabs{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--card);border-top:1px solid var(--bd);padding-bottom:env(safe-area-inset-bottom,0px)}
+.tabs button{flex:1;border:0;background:none;color:var(--sub);padding:14px 0;font-size:15px;font-weight:600}
+.tabs button.on{color:var(--ac)}
+.seg{display:flex;gap:8px;margin-bottom:12px}.seg button{flex:1;padding:12px;border-radius:10px;border:1.5px solid var(--bd);background:var(--card);color:var(--tx);font-size:16px;font-weight:700}.seg button.out.on{background:var(--out);color:#fff;border-color:var(--out)}.seg button.in.on{background:var(--in);color:#fff;border-color:var(--in)}
+label{display:block;font-size:12px;color:var(--sub);margin:10px 0 4px}input,select{width:100%;padding:12px;font-size:16px;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx)}
+.big{font-size:24px;font-weight:700}.btn{width:100%;margin-top:14px;padding:14px;border:0;border-radius:12px;background:var(--ac);color:#fff;font-size:17px;font-weight:700}.btn.g{background:var(--bg);color:var(--tx);border:1px solid var(--bd);margin-top:8px;font-size:14px;padding:10px}.btn.warn{background:var(--bg);color:var(--warn);border:1px solid var(--bd);margin-top:8px;font-size:14px;padding:10px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--bd)}.row:last-child{border:0}.row small{color:var(--sub);display:block}.in-c{color:var(--in);font-weight:700}.out-c{color:var(--out);font-weight:700}.x{border:0;background:none;color:var(--sub);font-size:18px;padding:6px}.bar{height:6px;border-radius:3px;background:var(--out);margin-top:4px}.sum{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center}.sum div{font-size:12px;color:var(--sub)}.sum b{display:block;font-size:16px;color:var(--tx);margin-top:2px}.mh{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.mh button{border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:10px;padding:8px 14px;font-size:16px}table{width:100%;border-collapse:collapse;font-size:13px}td,th{padding:7px 4px;text-align:right;border-bottom:1px solid var(--bd)}th:first-child,td:first-child{text-align:left}.sc{overflow-x:auto}
+#top{display:flex;gap:8px;justify-content:space-between;align-items:center;margin-bottom:8px}#st{font-size:11px;color:var(--sub);min-height:16px}.logout{border:0;background:none;color:var(--sub);font-size:12px;padding:6px}.login{max-width:420px;margin:10vh auto 0}.login h1{font-size:24px;margin:0 0 8px}.login p{color:var(--sub);line-height:1.6}.hidden{display:none!important}.note{font-size:12px;color:var(--sub);line-height:1.6}.empty{color:var(--sub);font-size:13px}.file-label{display:block;border:1px dashed var(--bd);border-radius:10px;padding:12px;text-align:center;cursor:pointer;color:var(--tx);margin-top:8px}.file-label input{display:none}
+</style>
+</head>
+<body>
+<div class="w">
+  <section id="loginView" class="login hidden">
+    <div class="card">
+      <h1>スタジオ帳簿</h1>
+      <p>ログインした本人のデータだけを読み込みます。初回はメールで届くログインリンクを開いてください。</p>
+      <label>メールアドレス</label>
+      <input id="loginEmail" type="email" autocomplete="email" placeholder="you@example.com">
+      <button class="btn" id="loginBtn">ログインリンクを送る</button>
+      <div id="loginMsg" class="note" style="margin-top:10px"></div>
+    </div>
+  </section>
+
+  <section id="appView" class="hidden">
+    <div id="top"><div id="st">読み込み中…</div><button id="logoutBtn" class="logout">ログアウト</button></div>
+    <div id="app"></div>
+  </section>
+</div>
+<div id="tabs" class="tabs hidden"><button data-t="add" class="on">入力</button><button data-t="list">一覧</button><button data-t="sum">集計</button><button data-t="tpl">テンプレ</button></div>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+// ★ここだけ自分のSupabaseプロジェクトの値に変更。
+// publishable / anon key はブラウザ公開前提のキー。service_role key は絶対に入れない。
+const SUPABASE_URL = 'https://lodtjwwbiglbecmrovjg.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_I9pOeNYUqlSzZPMznQTnoA_goBLeaKq';
+const configured = !SUPABASE_URL.startsWith('YOUR_') && !SUPABASE_PUBLISHABLE_KEY.startsWith('YOUR_');
+const supabase = configured ? createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}) : null;
+
+let user = null;
+let E = [], T = [];
+let CI = [], CO = [], PI = [], PO = [];
+let tf = null, tab = 'add', type = 'out', ym = today().slice(0,7), form = {date:today()};
+const $ = s => document.querySelector(s);
+const y = n => '¥' + Math.round(Number(n)||0).toLocaleString();
+function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function esc(s){return String(s||'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]))}
+function status(t){$('#st').textContent=t}
+function uid(prefix='x'){return prefix+Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
+
+function showLogin(message=''){
+  $('#loginView').classList.remove('hidden'); $('#appView').classList.add('hidden'); $('#tabs').classList.add('hidden');
+  $('#loginMsg').textContent = message;
+}
+function showApp(){
+  $('#loginView').classList.add('hidden'); $('#appView').classList.remove('hidden'); $('#tabs').classList.remove('hidden');
+}
+
+async function boot(){
+  if(!configured){showLogin('SupabaseのURLとPublishable Keyを設定すると使えます。'); $('#loginBtn').disabled=true; return;}
+  const {data:{session}} = await supabase.auth.getSession();
+  if(session?.user){await signedIn(session.user)} else showLogin();
+  supabase.auth.onAuthStateChange(async (event, session)=>{
+    if(session?.user && user?.id!==session.user.id) await signedIn(session.user);
+    if(event==='SIGNED_OUT'){user=null;E=[];T=[];showLogin('ログアウトしました');}
+  });
+}
+
+async function signedIn(u){
+  user=u; showApp(); status('☁️ データを読み込み中…');
+  await loadAll(); render(); status('☁️ 同期中');
+}
+
+$('#loginBtn').addEventListener('click', async ()=>{
+  const email=$('#loginEmail').value.trim(); if(!email){$('#loginEmail').focus();return;}
+  $('#loginBtn').disabled=true; $('#loginMsg').textContent='送信中…';
+  const {error}=await supabase.auth.signInWithOtp({email,options:{shouldCreateUser:false,emailRedirectTo:location.href}});
+  $('#loginBtn').disabled=false;
+  $('#loginMsg').textContent=error ? '送信できませんでした：'+error.message : 'メールを送ったよ。届いたログインリンクをこの端末で開いてね。';
+});
+$('#logoutBtn').addEventListener('click',()=>supabase.auth.signOut());
+
+async function loadAll(){
+  const [se,st,ss]=await Promise.all([
+    supabase.from('entries').select('id,type,date,name,cat,pay,amt,memo').order('date',{ascending:false}),
+    supabase.from('templates').select('id,type,name,cat,amt,pay').order('sort_order',{ascending:true}),
+    supabase.from('ledger_settings').select('income_categories,expense_categories,income_accounts,expense_methods').maybeSingle()
+  ]);
+  if(se.error) throw se.error; if(st.error) throw st.error; if(ss.error) throw ss.error;
+  E=(se.data||[]).map(x=>({...x,amt:Number(x.amt)||0}));
+  T=(st.data||[]).map(x=>({...x,amt:Number(x.amt)||0}));
+  const s=ss.data||{}; CI=s.income_categories||[]; CO=s.expense_categories||[]; PI=s.income_accounts||[]; PO=s.expense_methods||[];
+}
+
+async function insertEntry(o){
+  const payload={...o,user_id:user.id};
+  const {error}=await supabase.from('entries').insert(payload); if(error) throw error;
+}
+async function deleteEntry(id){const {error}=await supabase.from('entries').delete().eq('id',id);if(error)throw error}
+async function upsertTemplate(o,index){
+  const payload={...o,user_id:user.id,sort_order:index};
+  const {error}=await supabase.from('templates').upsert(payload,{onConflict:'user_id,id'});if(error)throw error;
+}
+async function deleteTemplate(id){const {error}=await supabase.from('templates').delete().eq('id',id);if(error)throw error}
+
+function opts(a,v){return (a||[]).map(x=>`<option${x===v?' selected':''}>${esc(x)}</option>`).join('')}
+function render(){
+  if(!user)return;
+  const a=$('#app');
+  if(!CI.length&&!CO.length){
+    a.innerHTML=`<div class="card"><b>最初の設定</b><p class="note">公開用コードには個人用のカテゴリ・口座名・テンプレを入れていません。付属の「private-data.json」をこの画面から1回だけ読み込むと、Supabaseへ安全に保存できます。</p><label class="file-label">初期データJSONを選ぶ<input id="importFile" type="file" accept="application/json,.json"></label></div>`;
+    $('#importFile')?.addEventListener('change',importPrivateData); return;
+  }
+  if(tab==='add'){
+    const C=type==='in'?CI:CO,P=type==='in'?PI:PO;
+    a.innerHTML=`<div class="seg"><button class="out ${type==='out'?'on':''}" onclick="setType('out')">支出</button><button class="in ${type==='in'?'on':''}" onclick="setType('in')">収入</button></div>
+    ${chips()}<div class="card"><label>金額（円）</label><input id="amt" type="number" inputmode="numeric" placeholder="0" class="big" value="${esc(form.amt||'')}">
+    <label>内容</label><input id="name" placeholder="内容" value="${esc(form.name||'')}">
+    <label>カテゴリ</label><select id="cat">${opts(C,form.cat)}</select>
+    <label>${type==='in'?'入金先':'支払方法'}</label><select id="pay">${opts(P,form.pay)}</select>
+    <label>日付</label><input id="date" type="date" value="${esc(form.date)}">
+    <label>メモ（任意）</label><input id="memo" value="${esc(form.memo||'')}">
+    <button class="btn" onclick="addEntry()">追加する</button></div>`;
+  }
+  if(tab==='tpl') a.innerHTML=tplView();
+  if(tab==='list'){
+    const L=E.filter(e=>String(e.date).startsWith(ym)).sort((p,q)=>String(q.date).localeCompare(String(p.date)));
+    a.innerHTML=mh()+`<div class="card">${L.length?L.map(e=>`<div class="row"><div><b>${esc(e.name||e.cat)}</b><small>${String(e.date).slice(5)} ・ ${esc(e.cat)} ・ ${esc(e.pay)}${e.memo?' ・ '+esc(e.memo):''}</small></div><div><span class="${e.type==='in'?'in-c':'out-c'}">${e.type==='in'?'+':'−'}${y(e.amt)}</span><button class="x" onclick="delEntry('${esc(e.id)}')">✕</button></div></div>`).join(''):'<small class="empty">この月のデータはありません</small>'}</div><button class="btn g" onclick="csv()">CSVで書き出し（全期間）</button>`;
+  }
+  if(tab==='sum'){
+    const L=E.filter(e=>String(e.date).startsWith(ym)),I=L.filter(e=>e.type==='in'),O=L.filter(e=>e.type==='out');
+    const si=sum(I),so=sum(O),by={};O.forEach(e=>by[e.cat]=(by[e.cat]||0)+e.amt);const rows=Object.entries(by).sort((p,q)=>q[1]-p[1]);
+    const yr=ym.slice(0,4);let t='';for(let m=1;m<=12;m++){const k=yr+'-'+String(m).padStart(2,'0'),i=sum(E.filter(e=>String(e.date).startsWith(k)&&e.type==='in')),o=sum(E.filter(e=>String(e.date).startsWith(k)&&e.type==='out'));t+=`<tr><td>${m}月</td><td>${y(i)}</td><td>${y(o)}</td><td class="${i-o<0?'out-c':'in-c'}">${y(i-o)}</td></tr>`}
+    a.innerHTML=mh()+`<div class="card"><div class="sum"><div>収入<b class="in-c">${y(si)}</b></div><div>支出<b class="out-c">${y(so)}</b></div><div>収支<b>${y(si-so)}</b></div></div></div><div class="card"><b>支出カテゴリ別</b>${rows.map(([c,v])=>`<div style="margin-top:10px"><div style="display:flex;justify-content:space-between"><span>${esc(c)}</span><span>${y(v)}</span></div><div class="bar" style="width:${rows[0]?v/rows[0][1]*100:0}%"></div></div>`).join('')||'<small class="empty">なし</small>'}</div><div class="card sc"><b>${yr}年 月別</b><table><tr><th></th><th>収入</th><th>支出</th><th>収支</th></tr>${t}</table></div>`;
+  }
+}
+
+function chips(){const L=T.filter(t=>t.type===type);return `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">${L.map(t=>`<button onclick="useT('${esc(t.id)}')" style="padding:9px 12px;border-radius:20px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font-size:14px">${esc(t.name)}${t.amt?`<small style="color:var(--sub)"> ${y(t.amt)}</small>`:''}</button>`).join('')||'<small class="empty">テンプレなし（「テンプレ」タブで追加）</small>'}</div>`}
+function useT(id){const t=T.find(x=>x.id===id);if(!t)return;form={date:$('#date')?$('#date').value:today(),name:t.name,cat:t.cat,pay:t.pay||(type==='in'?PI[0]:PO[0]),amt:t.amt||''};render();if(!t.amt)$('#amt')?.focus()}
+function tplView(){
+  if(tf){const C=tf.type==='in'?CI:CO,P=tf.type==='in'?PI:PO;return `<div class="card"><b>${tf.id?'テンプレを編集':'テンプレを追加'}</b><div class="seg" style="margin-top:10px"><button class="out ${tf.type==='out'?'on':''}" onclick="tfType('out')">支出</button><button class="in ${tf.type==='in'?'on':''}" onclick="tfType('in')">収入</button></div><label>名前</label><input id="tn" value="${esc(tf.name)}"><label>カテゴリ</label><select id="tc">${opts(C,tf.cat)}</select><label>金額（空欄＝毎回入力）</label><input id="ta" type="number" inputmode="numeric" value="${esc(tf.amt||'')}"><label>${tf.type==='in'?'入金先':'支払方法'}（未指定＝毎回選ぶ）</label><select id="tp"><option value="">未指定</option>${opts(P,tf.pay)}</select><button class="btn" onclick="tfSave()">保存</button><button class="btn g" onclick="tf=null;render()">キャンセル</button></div>`}
+  const blk=(ty,l)=>`<div class="card"><b>${l}テンプレ</b>${T.filter(t=>t.type===ty).map(t=>`<div class="row"><div><b>${esc(t.name)}</b><small>${esc(t.cat)} ・ ${t.amt?y(t.amt):'金額は都度'} ・ ${esc(t.pay||'支払方法は都度')}</small></div><div><button class="x" onclick="tfEdit('${esc(t.id)}')">✏️</button><button class="x" onclick="tfDel('${esc(t.id)}')">✕</button></div></div>`).join('')||'<small class="empty">なし</small>'}</div>`;
+  return `<button class="btn" style="margin:0 0 12px" onclick="tf={type:'out',name:'',cat:CO[0]||'',amt:'',pay:''};render()">＋ テンプレを追加</button>`+blk('out','支出')+blk('in','収入');
+}
+function tfType(t){tfRead();tf.type=t;tf.cat=(t==='in'?CI:CO)[0]||'';tf.pay='';render()}
+function tfRead(){tf.name=$('#tn').value;tf.cat=$('#tc').value;tf.amt=$('#ta').value;tf.pay=$('#tp').value}
+function tfEdit(id){tf={...T.find(t=>t.id===id)};render()}
+async function tfSave(){try{tfRead();if(!tf.name.trim()){$('#tn').focus();return}const o={id:tf.id||uid('t'),type:tf.type,name:tf.name.trim(),cat:tf.cat,amt:Number(tf.amt)||0,pay:tf.pay};const i=T.findIndex(t=>t.id===o.id);if(i>=0)T[i]=o;else T.push(o);await upsertTemplate(o,Math.max(i,0));tf=null;render();status('✅ テンプレを保存しました')}catch(e){status('⚠️ 保存失敗：'+e.message)}}
+async function tfDel(id){if(!confirm('このテンプレを削除しますか？（入力済みの帳簿は消えません）'))return;try{await deleteTemplate(id);T=T.filter(t=>t.id!==id);render();status('✅ テンプレを削除しました')}catch(e){status('⚠️ 削除失敗：'+e.message)}}
+function mh(){return `<div class="mh"><button onclick="mv(-1)">◀</button><b style="font-size:18px">${ym.replace('-','年')}月</b><button onclick="mv(1)">▶</button></div>`}
+function mv(d){let[Y,M]=ym.split('-').map(Number);M+=d;if(M<1){M=12;Y--}if(M>12){M=1;Y++}ym=Y+'-'+String(M).padStart(2,'0');render()}
+function sum(a){return a.reduce((s,e)=>s+(Number(e.amt)||0),0)}
+function setType(t){type=t;form={date:$('#date')?$('#date').value:today()};render()}
+async function addEntry(){
+  const amt=Number($('#amt').value);if(!amt){$('#amt').focus();return}const d=$('#date').value||today();
+  const o={id:uid('e'),type,date:d,name:$('#name').value.trim(),cat:$('#cat').value,pay:$('#pay').value,amt,memo:$('#memo').value.trim()};
+  try{await insertEntry(o);E.push(o);form={date:d};ym=d.slice(0,7);render();status('✅ 追加しました')}catch(e){status('⚠️ 保存失敗：'+e.message)}
+}
+async function delEntry(id){if(!confirm('削除しますか？'))return;try{await deleteEntry(id);E=E.filter(e=>e.id!==id);render();status('✅ 削除しました')}catch(e){status('⚠️ 削除失敗：'+e.message)}}
+function csv(){
+  const h='日付,収支,内容,カテゴリ,金額,支払/入金先,メモ\n';
+  const b=[...E].sort((p,q)=>String(p.date).localeCompare(String(q.date))).map(e=>[e.date,e.type==='in'?'収入':'支出',e.name,e.cat,e.amt,e.pay,e.memo].map(v=>'"'+String(v||'').replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob=new Blob(['\ufeff'+h+b],{type:'text/csv;charset=utf-8'});const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download='ledger.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000);
+}
+
+async function importPrivateData(ev){
+  const file=ev.target.files?.[0]; if(!file)return;
+  try{
+    const d=JSON.parse(await file.text());
+    const s=d.settings||{};
+    const settings={user_id:user.id,income_categories:s.income_categories||[],expense_categories:s.expense_categories||[],income_accounts:s.income_accounts||[],expense_methods:s.expense_methods||[]};
+    const {error:se}=await supabase.from('ledger_settings').upsert(settings,{onConflict:'user_id'});if(se)throw se;
+    if(Array.isArray(d.templates)&&d.templates.length){
+      const rows=d.templates.map((t,i)=>({user_id:user.id,id:t.id||uid('t'),type:t.type,name:t.name,cat:t.cat,amt:Number(t.amt)||0,pay:t.pay||'',sort_order:i}));
+      const {error:te}=await supabase.from('templates').upsert(rows,{onConflict:'user_id,id'});if(te)throw te;
+    }
+    await loadAll(); render(); status('✅ 初期データをSupabaseへ移しました');
+  }catch(e){status('⚠️ 読み込み失敗：'+e.message)}
+}
+
+$('#tabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{tab=b.dataset.t;tf=null;$('#tabs').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));render()});
+document.addEventListener('input',e=>{const m={amt:'amt',name:'name',memo:'memo',date:'date'};if(m[e.target.id])form[m[e.target.id]]=e.target.value});
+document.addEventListener('change',e=>{if(e.target.id==='cat')form.cat=e.target.value;if(e.target.id==='pay')form.pay=e.target.value});
+
+Object.assign(window,{render,setType,useT,tfType,tfEdit,tfSave,tfDel,mv,addEntry,delEntry,csv});
+boot().catch(e=>showLogin('起動エラー：'+e.message));
+</script>
+</body>
+</html>
