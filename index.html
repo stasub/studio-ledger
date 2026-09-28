@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow,noarchive">
 <title>スタジオ帳簿</title>
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<link rel="icon" type="image/png" href="./apple-touch-icon.png">
+<meta name="theme-color" content="#2f6f5e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="スタジオ帳簿">
 <style>
 :root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f6f5f2;--card:#fff;--tx:#222;--sub:#777;--ac:#2f6f5e;--in:#2f6f5e;--out:#c4553b;--bd:#e5e2dc;--warn:#a76a00}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#181a19;--card:#232625;--tx:#eee;--sub:#aaa;--ac:#5bb49c;--in:#5bb49c;--out:#e88a72;--bd:#333;--warn:#e1ad4f}}
@@ -142,7 +148,7 @@ function render(){
   if(tab==='tpl') a.innerHTML=tplView();
   if(tab==='list'){
     const L=E.filter(e=>String(e.date).startsWith(ym)).sort((p,q)=>String(q.date).localeCompare(String(p.date)));
-    a.innerHTML=mh()+`<div class="card">${L.length?L.map(e=>`<div class="row"><div><b>${esc(e.name||e.cat)}</b><small>${String(e.date).slice(5)} ・ ${esc(e.cat)} ・ ${esc(e.pay)}${e.memo?' ・ '+esc(e.memo):''}</small></div><div><span class="${e.type==='in'?'in-c':'out-c'}">${e.type==='in'?'+':'−'}${y(e.amt)}</span><button class="x" onclick="delEntry('${esc(e.id)}')">✕</button></div></div>`).join(''):'<small class="empty">この月のデータはありません</small>'}</div><button class="btn g" onclick="csv()">CSVで書き出し（全期間）</button>`;
+    a.innerHTML=mh()+`<div class="card">${L.length?L.map(e=>`<div class="row"><div><b>${esc(e.name||e.cat)}</b><small>${String(e.date).slice(5)} ・ ${esc(e.cat)} ・ ${esc(e.pay)}${e.memo?' ・ '+esc(e.memo):''}</small></div><div><span class="${e.type==='in'?'in-c':'out-c'}">${e.type==='in'?'+':'−'}${y(e.amt)}</span><button class="x" onclick="delEntry('${esc(e.id)}')">✕</button></div></div>`).join(''):'<small class="empty">この月のデータはありません</small>'}</div><button class="btn g" onclick="csv()">CSVで書き出し（全期間）</button><button class="btn g" onclick="fullBackup()">フルバックアップJSONを保存</button><p class="note" style="margin:8px 2px 0">帳簿・テンプレ・カテゴリ・口座設定をまとめて保存します。iCloud Driveなど別の場所に保管してね。</p>`;
   }
   if(tab==='sum'){
     const L=E.filter(e=>String(e.date).startsWith(ym)),I=L.filter(e=>e.type==='in'),O=L.filter(e=>e.type==='out');
@@ -180,6 +186,29 @@ function csv(){
   const blob=new Blob(['\ufeff'+h+b],{type:'text/csv;charset=utf-8'});const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download='ledger.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000);
 }
 
+function fullBackup(){
+  try{
+    const data={
+      format:'studio-ledger-backup',
+      version:1,
+      exported_at:new Date().toISOString(),
+      settings:{
+        income_categories:[...CI],
+        expense_categories:[...CO],
+        income_accounts:[...PI],
+        expense_methods:[...PO]
+      },
+      templates:T.map(t=>({id:t.id,type:t.type,name:t.name,cat:t.cat,amt:Number(t.amt)||0,pay:t.pay||''})),
+      entries:E.map(e=>({id:e.id,type:e.type,date:e.date,name:e.name||'',cat:e.cat,pay:e.pay||'',amt:Number(e.amt)||0,memo:e.memo||''}))
+    };
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json;charset=utf-8'});
+    const u=URL.createObjectURL(blob),a=document.createElement('a');
+    a.href=u;a.download='studio-ledger-backup-'+today()+'.json';document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(u),1000);
+    status('✅ フルバックアップを保存しました');
+  }catch(e){status('⚠️ バックアップ失敗：'+e.message)}
+}
+
 async function importPrivateData(ev){
   const file=ev.target.files?.[0]; if(!file)return;
   try{
@@ -199,7 +228,7 @@ $('#tabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{tab=b.dataset.t;
 document.addEventListener('input',e=>{const m={amt:'amt',name:'name',memo:'memo',date:'date'};if(m[e.target.id])form[m[e.target.id]]=e.target.value});
 document.addEventListener('change',e=>{if(e.target.id==='cat')form.cat=e.target.value;if(e.target.id==='pay')form.pay=e.target.value});
 
-Object.assign(window,{render,setType,useT,tfType,tfEdit,tfSave,tfDel,mv,addEntry,delEntry,csv});
+Object.assign(window,{render,setType,useT,tfType,tfEdit,tfSave,tfDel,mv,addEntry,delEntry,csv,fullBackup});
 boot().catch(e=>showLogin('起動エラー：'+e.message));
 </script>
 </body>
