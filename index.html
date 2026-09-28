@@ -35,16 +35,19 @@ label{display:block;font-size:12px;color:var(--sub);margin:10px 0 4px}input,sele
   <section id="loginView" class="login hidden">
     <div class="card">
       <h1>スタジオ帳簿</h1>
-      <p>ログインした本人のデータだけを読み込みます。初回はメールで届くログインリンクを開いてください。</p>
+      <p>ログインした本人のデータだけを読み込みます。普段はメールアドレス＋パスワードでログインします。</p>
       <label>メールアドレス</label>
       <input id="loginEmail" type="email" autocomplete="email" placeholder="you@example.com">
-      <button class="btn" id="loginBtn">ログインリンクを送る</button>
-      <div id="loginMsg" class="note" style="margin-top:10px"></div>
+      <label>パスワード</label>
+      <input id="loginPassword" type="password" autocomplete="current-password" placeholder="パスワード">
+      <button class="btn" id="loginBtn">ログイン</button>
+      <button class="btn g" id="magicBtn">初回設定用のログインリンクをメールで送る</button>
+      <div id="loginMsg" class="note" style="margin-top:10px">初回だけ、メールのリンクをSafariで開いてログインしたあと「ログイン設定」からパスワードを決めてね。</div>
     </div>
   </section>
 
   <section id="appView" class="hidden">
-    <div id="top"><div id="st">読み込み中…</div><button id="logoutBtn" class="logout">ログアウト</button></div>
+    <div id="top"><div id="st">読み込み中…</div><div><button id="passwordBtn" class="logout">ログイン設定</button><button id="logoutBtn" class="logout">ログアウト</button></div></div>
     <div id="app"></div>
   </section>
 </div>
@@ -94,13 +97,49 @@ async function signedIn(u){
   await loadAll(); render(); status('☁️ 同期中');
 }
 
+let pendingLoginEmail = localStorage.getItem('studioLedgerLoginEmail') || '';
+if(pendingLoginEmail) $('#loginEmail').value = pendingLoginEmail;
+
 $('#loginBtn').addEventListener('click', async ()=>{
-  const email=$('#loginEmail').value.trim(); if(!email){$('#loginEmail').focus();return;}
-  $('#loginBtn').disabled=true; $('#loginMsg').textContent='送信中…';
-  const {error}=await supabase.auth.signInWithOtp({email,options:{shouldCreateUser:false,emailRedirectTo:location.href}});
+  const email=$('#loginEmail').value.trim();
+  const password=$('#loginPassword').value;
+  if(!email){$('#loginEmail').focus();return;}
+  if(!password){$('#loginPassword').focus();return;}
+  $('#loginBtn').disabled=true; $('#loginMsg').textContent='ログイン中…';
+  const {error}=await supabase.auth.signInWithPassword({email,password});
   $('#loginBtn').disabled=false;
-  $('#loginMsg').textContent=error ? '送信できませんでした：'+error.message : 'メールを送ったよ。届いたログインリンクをこの端末で開いてね。';
+  if(error){$('#loginMsg').textContent='ログインできませんでした：'+error.message;return;}
+  pendingLoginEmail=email; localStorage.setItem('studioLedgerLoginEmail', email);
+  $('#loginMsg').textContent='ログインしました';
 });
+
+$('#magicBtn').addEventListener('click', async ()=>{
+  const email=$('#loginEmail').value.trim(); if(!email){$('#loginEmail').focus();return;}
+  $('#magicBtn').disabled=true; $('#loginMsg').textContent='送信中…';
+  const {error}=await supabase.auth.signInWithOtp({email,options:{shouldCreateUser:false,emailRedirectTo:location.href}});
+  $('#magicBtn').disabled=false;
+  if(error){$('#loginMsg').textContent='送信できませんでした：'+error.message;return;}
+  pendingLoginEmail=email; localStorage.setItem('studioLedgerLoginEmail', email);
+  $('#loginMsg').textContent='メールを送ったよ。届いたリンクをSafariで開いて、このサイトに戻ったら「ログイン設定」でパスワードを決めてね。';
+});
+
+$('#loginPassword').addEventListener('keydown',e=>{if(e.key==='Enter')$('#loginBtn').click()});
+
+$('#passwordBtn').addEventListener('click', async ()=>{
+  if(!user)return;
+  const p1=prompt('この帳簿にログインするときの新しいパスワードを入力してね（8文字以上がおすすめ）');
+  if(p1===null)return;
+  if(p1.length<8){alert('8文字以上にしてね');return;}
+  const p2=prompt('確認のため、もう一度同じパスワードを入力してね');
+  if(p2===null)return;
+  if(p1!==p2){alert('パスワードが一致してないよ');return;}
+  status('🔐 パスワードを設定中…');
+  const {error}=await supabase.auth.updateUser({password:p1});
+  if(error){status('⚠️ パスワード設定失敗：'+error.message);return;}
+  status('✅ ログイン用パスワードを設定しました');
+  alert('パスワードを設定したよ。次からホーム画面のアプリで、メールアドレス＋このパスワードでログインできるよ。');
+});
+
 $('#logoutBtn').addEventListener('click',()=>supabase.auth.signOut());
 
 async function loadAll(){
