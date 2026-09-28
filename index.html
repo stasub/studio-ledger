@@ -200,10 +200,12 @@ function render(){
 function chips(){const L=T.filter(t=>t.type===type);return `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">${L.map(t=>`<button onclick="useT('${esc(t.id)}')" style="padding:9px 12px;border-radius:20px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font-size:14px">${esc(t.name)}${t.amt?`<small style="color:var(--sub)"> ${y(t.amt)}</small>`:''}</button>`).join('')||'<small class="empty">テンプレなし（「テンプレ」タブで追加）</small>'}</div>`}
 function useT(id){const t=T.find(x=>x.id===id);if(!t)return;form={date:$('#date')?$('#date').value:today(),name:t.name,cat:t.cat,pay:t.pay||(type==='in'?PI[0]:PO[0]),amt:t.amt||''};render();if(!t.amt)$('#amt')?.focus()}
 function tplView(){
-  if(tf){const C=tf.type==='in'?CI:CO,P=tf.type==='in'?PI:PO;return `<div class="card"><b>${tf.id?'テンプレを編集':'テンプレを追加'}</b><div class="seg" style="margin-top:10px"><button class="out ${tf.type==='out'?'on':''}" onclick="tfType('out')">支出</button><button class="in ${tf.type==='in'?'on':''}" onclick="tfType('in')">収入</button></div><label>名前</label><input id="tn" value="${esc(tf.name)}"><label>カテゴリ</label><select id="tc">${opts(C,tf.cat)}</select><label>金額（空欄＝毎回入力）</label><input id="ta" type="number" inputmode="numeric" value="${esc(tf.amt||'')}"><label>${tf.type==='in'?'入金先':'支払方法'}（未指定＝毎回選ぶ）</label><select id="tp"><option value="">未指定</option>${opts(P,tf.pay)}</select><button class="btn" onclick="tfSave()">保存</button><button class="btn g" onclick="tf=null;render()">キャンセル</button></div>`}
+  if(tf){const C=tf.type==='in'?CI:CO,P=tf.type==='in'?PI:PO;return `<div class="card"><b>${tf.id?'テンプレを編集':'テンプレを追加'}</b><div class="seg" style="margin-top:10px"><button class="out ${tf.type==='out'?'on':''}" onclick="tfType('out')">支出</button><button class="in ${tf.type==='in'?'on':''}" onclick="tfType('in')">収入</button></div><label>名前</label><input id="tn" value="${esc(tf.name)}"><label>カテゴリ</label><select id="tc">${opts(C,tf.cat)}</select><label>金額（空欄＝毎回入力）</label><input id="ta" type="number" inputmode="numeric" value="${esc(tf.amt||'')}"><label>${tf.type==='in'?'入金先':'支払方法'}（未指定＝毎回選ぶ）</label><select id="tp"><option value="">未指定</option>${opts(P,tf.pay)}</select><button class="btn" onclick="tfSave()">保存</button><button class="btn g" onclick="tfCancel()">キャンセル</button></div>`}
   const blk=(ty,l)=>`<div class="card"><b>${l}テンプレ</b>${T.filter(t=>t.type===ty).map(t=>`<div class="row"><div><b>${esc(t.name)}</b><small>${esc(t.cat)} ・ ${t.amt?y(t.amt):'金額は都度'} ・ ${esc(t.pay||'支払方法は都度')}</small></div><div><button class="x" onclick="tfEdit('${esc(t.id)}')">✏️</button><button class="x" onclick="tfDel('${esc(t.id)}')">✕</button></div></div>`).join('')||'<small class="empty">なし</small>'}</div>`;
-  return `<button class="btn" style="margin:0 0 12px" onclick="tf={type:'out',name:'',cat:CO[0]||'',amt:'',pay:''};render()">＋ テンプレを追加</button>`+blk('out','支出')+blk('in','収入');
+  return `<button class="btn" style="margin:0 0 12px" onclick="tfNew()">＋ テンプレを追加</button>`+blk('out','支出')+blk('in','収入');
 }
+function tfNew(){tf={type:'out',name:'',cat:CO[0]||'',amt:'',pay:''};render()}
+function tfCancel(){tf=null;render()}
 function tfType(t){tfRead();tf.type=t;tf.cat=(t==='in'?CI:CO)[0]||'';tf.pay='';render()}
 function tfRead(){tf.name=$('#tn').value;tf.cat=$('#tc').value;tf.amt=$('#ta').value;tf.pay=$('#tp').value}
 function tfEdit(id){tf={...T.find(t=>t.id===id)};render()}
@@ -267,7 +269,7 @@ $('#tabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{tab=b.dataset.t;
 document.addEventListener('input',e=>{const m={amt:'amt',name:'name',memo:'memo',date:'date'};if(m[e.target.id])form[m[e.target.id]]=e.target.value});
 document.addEventListener('change',e=>{if(e.target.id==='cat')form.cat=e.target.value;if(e.target.id==='pay')form.pay=e.target.value});
 
-Object.assign(window,{render,setType,useT,tfType,tfEdit,tfSave,tfDel,mv,addEntry,delEntry,csv,fullBackup});
+Object.assign(window,{render,setType,useT,tfNew,tfCancel,tfType,tfEdit,tfSave,tfDel,mv,addEntry,delEntry,csv,fullBackup});
 boot().catch(e=>showLogin('起動エラー：'+e.message));
 </script>
 </body>
