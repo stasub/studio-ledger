@@ -27,7 +27,7 @@ body{margin:0;background:var(--bg);color:var(--tx);font-family:-apple-system,"Hi
 label{display:block;font-size:12px;color:var(--sub);margin:10px 0 4px}input,select{width:100%;padding:12px;font-size:16px;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx)}
 .big{font-size:24px;font-weight:700}.btn{width:100%;margin-top:14px;padding:14px;border:0;border-radius:12px;background:var(--ac);color:#fff;font-size:17px;font-weight:700}.btn.g{background:var(--bg);color:var(--tx);border:1px solid var(--bd);margin-top:8px;font-size:14px;padding:10px}.btn.warn{background:var(--bg);color:var(--warn);border:1px solid var(--bd);margin-top:8px;font-size:14px;padding:10px}
 .row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--bd)}.row:last-child{border:0}.row small{color:var(--sub);display:block}.in-c{color:var(--in);font-weight:700}.out-c{color:var(--out);font-weight:700}.x{border:0;background:none;color:var(--sub);font-size:18px;padding:6px}.bar{height:6px;border-radius:3px;background:var(--out);margin-top:4px}.sum{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center}.sum div{font-size:12px;color:var(--sub)}.sum b{display:block;font-size:16px;color:var(--tx);margin-top:2px}.mh{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.mh button{border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:10px;padding:8px 14px;font-size:16px}table{width:100%;border-collapse:collapse;font-size:13px}td,th{padding:7px 4px;text-align:right;border-bottom:1px solid var(--bd)}th:first-child,td:first-child{text-align:left}.sc{overflow-x:auto}
-#top{display:flex;gap:8px;justify-content:space-between;align-items:center;margin-bottom:8px}#st{font-size:11px;color:var(--sub);min-height:16px}.logout{border:0;background:none;color:var(--sub);font-size:12px;padding:6px}.login{max-width:420px;margin:10vh auto 0}.login h1{font-size:24px;margin:0 0 8px}.login p{color:var(--sub);line-height:1.6}.hidden{display:none!important}.note{font-size:12px;color:var(--sub);line-height:1.6}.empty{color:var(--sub);font-size:13px}.file-label{display:block;border:1px dashed var(--bd);border-radius:10px;padding:12px;text-align:center;cursor:pointer;color:var(--tx);margin-top:8px}.file-label input{display:none}.filters{display:grid;grid-template-columns:1fr 1fr;gap:8px}.filters>div{min-width:0}.filters .wide{grid-column:1/-1}.filter-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.filter-actions .btn{margin-top:0}.result-count{font-size:12px;color:var(--sub);margin:2px 0 10px}.result-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}.result-head b{font-size:15px}
+#top{display:flex;gap:8px;justify-content:space-between;align-items:center;margin-bottom:8px}#st{font-size:11px;color:var(--sub);min-height:16px}.logout{border:0;background:none;color:var(--sub);font-size:12px;padding:6px}.login{max-width:420px;margin:10vh auto 0}.login h1{font-size:24px;margin:0 0 8px}.login p{color:var(--sub);line-height:1.6}.hidden{display:none!important}.note{font-size:12px;color:var(--sub);line-height:1.6}.empty{color:var(--sub);font-size:13px}.file-label{display:block;border:1px dashed var(--bd);border-radius:10px;padding:12px;text-align:center;cursor:pointer;color:var(--tx);margin-top:8px}.file-label input{display:none}.filters{display:grid;grid-template-columns:1fr 1fr;gap:8px}.filters>div{min-width:0}.filters .wide{grid-column:1/-1}.filter-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.filter-actions .btn{margin-top:0}.result-count{font-size:12px;color:var(--sub);margin:2px 0 10px}.result-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}.result-head b{font-size:15px}.entry-actions{display:flex;align-items:center;gap:0}.lock-banner{border-left:4px solid var(--warn)}.lock-state{font-size:13px;line-height:1.6}.history-list{margin-top:10px;border-top:1px solid var(--bd)}.history-item{padding:10px 0;border-bottom:1px solid var(--bd);font-size:13px;line-height:1.5}.history-item:last-child{border-bottom:0}.history-item small{display:block;color:var(--sub);margin-top:2px}.edit-title{display:flex;justify-content:space-between;align-items:center;gap:8px}.pill{display:inline-block;border:1px solid var(--bd);border-radius:999px;padding:3px 8px;font-size:11px;color:var(--sub)}
 </style>
 </head>
 <body>
@@ -69,6 +69,7 @@ let CI = [], CO = [], PI = [], PO = [];
 let tf = null, tab = 'add', type = 'out', ym = today().slice(0,7), form = {date:today()};
 let sumYear = Number(today().slice(0,4));
 let listPeriod='month', listType='all', listCat='', listName='', listPay='';
+let editDraft=null, yearLocks={}, lockFeatureReady=true, historyOpen=false, historyRows=[], historyYear=null;
 const $ = s => document.querySelector(s);
 const y = n => '¥' + Math.round(Number(n)||0).toLocaleString();
 function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
@@ -144,23 +145,47 @@ $('#passwordBtn').addEventListener('click', async ()=>{
 
 $('#logoutBtn').addEventListener('click',()=>supabase.auth.signOut());
 
+async function fetchAllRows(table,columns,orderCol='id',ascending=true){
+  const out=[];const page=1000;let from=0;
+  while(true){
+    let q=supabase.from(table).select(columns).range(from,from+page-1);
+    if(orderCol){q=q.order(orderCol,{ascending});if(orderCol!=='id'&&table!=='year_locks')q=q.order('id',{ascending:true})}
+    const {data,error}=await q;if(error)throw error;
+    out.push(...(data||[]));if(!data||data.length<page)break;from+=page;
+  }
+  return out;
+}
 async function loadAll(){
-  const [se,st,ss]=await Promise.all([
-    supabase.from('entries').select('id,type,date,name,cat,pay,amt,memo').order('date',{ascending:false}),
-    supabase.from('templates').select('id,type,name,cat,amt,pay').order('sort_order',{ascending:true}),
-    supabase.from('ledger_settings').select('income_categories,expense_categories,income_accounts,expense_methods').maybeSingle()
+  const [entries,templates,ss,yl]=await Promise.all([
+    fetchAllRows('entries','id,type,date,name,cat,pay,amt,memo','date',false),
+    fetchAllRows('templates','id,type,name,cat,amt,pay,sort_order','sort_order',true),
+    supabase.from('ledger_settings').select('income_categories,expense_categories,income_accounts,expense_methods').maybeSingle(),
+    supabase.from('year_locks').select('year,locked,locked_at,unlocked_at')
   ]);
-  if(se.error) throw se.error; if(st.error) throw st.error; if(ss.error) throw ss.error;
-  E=(se.data||[]).map(x=>({...x,amt:Number(x.amt)||0}));
-  T=(st.data||[]).map(x=>({...x,amt:Number(x.amt)||0}));
+  if(ss.error) throw ss.error;
+  E=(entries||[]).map(x=>({...x,amt:Number(x.amt)||0}));
+  T=(templates||[]).map(x=>({...x,amt:Number(x.amt)||0}));
   const s=ss.data||{}; CI=s.income_categories||[]; CO=s.expense_categories||[]; PI=s.income_accounts||[]; PO=s.expense_methods||[];
+  if(yl.error){lockFeatureReady=false;yearLocks={};}
+  else{lockFeatureReady=true;yearLocks=Object.fromEntries((yl.data||[]).map(x=>[String(x.year),x]));}
 }
 
 async function insertEntry(o){
   const payload={...o,user_id:user.id};
   const {error}=await supabase.from('entries').insert(payload); if(error) throw error;
 }
+async function updateEntry(id,o){const {error}=await supabase.from('entries').update(o).eq('id',id);if(error)throw error}
 async function deleteEntry(id){const {error}=await supabase.from('entries').delete().eq('id',id);if(error)throw error}
+async function setYearLockDb(year,locked){
+  const now=new Date().toISOString();
+  const payload=locked?{user_id:user.id,year:Number(year),locked:true,locked_at:now,unlocked_at:null}:{user_id:user.id,year:Number(year),locked:false,unlocked_at:now};
+  const {data,error}=await supabase.from('year_locks').upsert(payload,{onConflict:'user_id,year'}).select('year,locked,locked_at,unlocked_at').single();
+  if(error)throw error;return data;
+}
+async function fetchYearHistory(year){
+  const {data,error}=await supabase.from('ledger_audit_log').select('id,action,entry_id,year,old_data,new_data,created_at').eq('year',Number(year)).order('created_at',{ascending:false}).limit(200);
+  if(error)throw error;return data||[];
+}
 async function upsertTemplate(o,index){
   const payload={...o,user_id:user.id,sort_order:index};
   const {error}=await supabase.from('templates').upsert(payload,{onConflict:'user_id,id'});if(error)throw error;
@@ -168,6 +193,10 @@ async function upsertTemplate(o,index){
 async function deleteTemplate(id){const {error}=await supabase.from('templates').delete().eq('id',id);if(error)throw error}
 
 function opts(a,v){return (a||[]).map(x=>`<option${x===v?' selected':''}>${esc(x)}</option>`).join('')}
+function optsKeep(a,v){const z=[...(a||[])];if(v&&!z.includes(v))z.unshift(v);return opts(z,v)}
+function entryYear(e){return String(e?.date||'').slice(0,4)}
+function isYearLocked(year){return !!yearLocks[String(year)]?.locked}
+function friendlyError(e){const m=String(e?.message||e||'');return m.includes('YEAR_LOCKED:')?m.split('YEAR_LOCKED:').pop().trim():m}
 function render(){
   if(!user)return;
   const a=$('#app');
@@ -192,7 +221,9 @@ function render(){
     const cats=listType==='in'?CI:listType==='out'?CO:[...new Set([...CI,...CO])];
     const pays=listType==='in'?PI:listType==='out'?PO:[...new Set([...PI,...PO])];
     const label=listPeriod==='month'?'この月':listPeriod==='year'?'この年':'全期間';
-    a.innerHTML=listNav()+`<div class="card"><b>絞り込み</b><div class="filters">
+    const listYr=listPeriod==='all'?'':ym.slice(0,4);
+    const lockBanner=listYr&&isYearLocked(listYr)?`<div class="card lock-banner"><div class="lock-state">🔒 <b>${esc(listYr)}年はロック中</b><br><span class="note">この年の追加・編集・削除は停止中。解除は「集計」→年間集計からできます。</span></div></div>`:'';
+    a.innerHTML=listNav()+lockBanner+(editDraft?entryEditView():'')+`<div class="card"><b>絞り込み</b><div class="filters">
       <div><label>期間</label><select onchange="setListFilter('period',this.value)"><option value="month"${listPeriod==='month'?' selected':''}>この月</option><option value="year"${listPeriod==='year'?' selected':''}>この年</option><option value="all"${listPeriod==='all'?' selected':''}>全期間</option></select></div>
       <div><label>収支</label><select onchange="setListFilter('type',this.value)"><option value="all"${listType==='all'?' selected':''}>すべて</option><option value="out"${listType==='out'?' selected':''}>支出</option><option value="in"${listType==='in'?' selected':''}>収入</option></select></div>
       <div><label>カテゴリ</label><select onchange="setListFilter('cat',this.value)"><option value="">すべて</option>${cats.map(x=>`<option value="${esc(x)}"${x===listCat?' selected':''}>${esc(x)}</option>`).join('')}</select></div>
@@ -200,8 +231,8 @@ function render(){
       <div class="wide"><label>名前</label><select onchange="setListFilter('name',this.value)"><option value="">すべて</option>${[...new Set(E.map(e=>e.name).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ja')).map(x=>`<option value="${esc(x)}"${x===listName?' selected':''}>${esc(x)}</option>`).join('')}</select></div>
     </div><button class="btn g" onclick="clearListFilters()">絞り込みをクリア</button></div>
     <div class="card"><div class="result-head"><b>${esc(label)}の絞り込み結果</b><span class="result-count">${L.length}件</span></div><div class="sum"><div>収入<b class="in-c">${y(sum(I))}</b></div><div>支出<b class="out-c">${y(sum(O))}</b></div><div>収支<b>${y(sum(I)-sum(O))}</b></div></div></div>
-    <div class="card">${L.length?L.map(e=>`<div class="row"><div><b>${esc(e.name||e.cat)}</b><small>${listPeriod==='month'?String(e.date).slice(5):esc(e.date)} ・ ${esc(e.cat)} ・ ${esc(e.pay)}${e.memo?' ・ '+esc(e.memo):''}</small></div><div><span class="${e.type==='in'?'in-c':'out-c'}">${e.type==='in'?'+':'−'}${y(e.amt)}</span><button class="x" onclick="delEntry('${esc(e.id)}')">✕</button></div></div>`).join(''):'<small class="empty">条件に合うデータはありません</small>'}</div>
-    <button class="btn g" onclick="csvFiltered()">絞り込み結果をCSVで書き出す</button><button class="btn g" onclick="csv()">全期間をCSVで書き出す</button><button class="btn g" onclick="fullBackup()">フルバックアップJSONを保存</button><p class="note" style="margin:8px 2px 0">CSVは確定申告前の確認用にも便利。フルバックアップは帳簿・テンプレ・カテゴリ・口座設定をまとめて保存します。</p>`;
+    <div class="card">${L.length?L.map(e=>{const locked=isYearLocked(entryYear(e));return `<div class="row"><div><b>${esc(e.name||e.cat)}</b><small>${listPeriod==='month'?String(e.date).slice(5):esc(e.date)} ・ ${esc(e.cat)} ・ ${esc(e.pay)}${e.memo?' ・ '+esc(e.memo):''}</small></div><div style="text-align:right"><span class="${e.type==='in'?'in-c':'out-c'}">${e.type==='in'?'+':'−'}${y(e.amt)}</span><div class="entry-actions">${locked?'<span class="pill">🔒 ロック中</span>':`<button class="x" onclick="startEdit('${esc(e.id)}')" aria-label="編集">✏️</button><button class="x" onclick="delEntry('${esc(e.id)}')" aria-label="削除">✕</button>`}</div></div></div>`}).join(''):'<small class="empty">条件に合うデータはありません</small>'}</div>
+    <button class="btn g" onclick="csvFiltered()">絞り込み結果をCSVで書き出す</button><button class="btn g" onclick="csv()">全期間をCSVで書き出す</button><button class="btn g" onclick="fullBackup()">フルバックアップJSONを保存</button><p class="note" style="margin:8px 2px 0">CSVは確定申告前の確認用にも便利。フルバックアップは帳簿・テンプレ・カテゴリ・口座設定に加えて、年ロックと変更履歴もまとめて保存します。</p>`;
   }
   if(tab==='sum'){
     const L=E.filter(e=>String(e.date).startsWith(ym)),I=L.filter(e=>e.type==='in'),O=L.filter(e=>e.type==='out');
@@ -223,11 +254,103 @@ function render(){
     a.innerHTML=mh()+`<div class="card"><div class="result-head"><b>${ym.slice(5)}月の集計</b><span class="result-count">${L.length}件</span></div><div class="sum"><div>収入<b class="in-c">${y(si)}</b></div><div>支出<b class="out-c">${y(so)}</b></div><div>収支<b>${y(si-so)}</b></div></div></div>
     <div class="card"><b>${ym.slice(5)}月 支出カテゴリ別</b>${rows.map(([c,v])=>`<div style="margin-top:10px"><div style="display:flex;justify-content:space-between"><span>${esc(c)}</span><span>${y(v)}</span></div><div class="bar" style="width:${rows[0]?v/rows[0][1]*100:0}%"></div></div>`).join('')||'<small class="empty">なし</small>'}</div>
     ${sumYearNav()}
+    ${yearLockCard(yr)}
     <div class="card"><div class="result-head"><b>${yr}年の年間合計</b><span class="result-count">${Y.length}件</span></div><div class="sum"><div>収入<b class="in-c">${y(ysi)}</b></div><div>支出<b class="out-c">${y(yso)}</b></div><div>収支<b>${y(ysi-yso)}</b></div></div></div>
     <div class="card sc"><b>${yr}年 支出カテゴリ別合計</b><table><tr><th>カテゴリ</th><th>合計</th></tr>${outTable}<tr><th>支出合計</th><th>${y(yso)}</th></tr></table></div>
     <div class="card sc"><b>${yr}年 収入カテゴリ別合計</b><table><tr><th>カテゴリ</th><th>合計</th></tr>${inTable}<tr><th>収入合計</th><th>${y(ysi)}</th></tr></table></div>
     <div class="card sc"><b>${yr}年 月別</b><table><tr><th></th><th>収入</th><th>支出</th><th>収支</th></tr>${t}</table></div>`;
   }
+}
+
+function entryEditView(){
+  const e=editDraft;if(!e)return '';
+  const C=e.type==='in'?CI:CO,P=e.type==='in'?PI:PO;
+  return `<div class="card"><div class="edit-title"><b>✏️ 明細を編集</b><span class="pill">${esc(entryYear(e))}年</span></div>
+  <div class="seg" style="margin-top:10px"><button class="out ${e.type==='out'?'on':''}" onclick="editType('out')">支出</button><button class="in ${e.type==='in'?'on':''}" onclick="editType('in')">収入</button></div>
+  <label>金額（円）</label><input id="editAmt" type="number" inputmode="numeric" class="big" value="${esc(e.amt)}">
+  <label>内容</label><input id="editName" value="${esc(e.name||'')}">
+  <label>カテゴリ</label><select id="editCat">${optsKeep(C,e.cat)}</select>
+  <label>${e.type==='in'?'入金先':'支払方法'}</label><select id="editPay">${optsKeep(P,e.pay)}</select>
+  <label>日付</label><input id="editDate" type="date" value="${esc(e.date)}">
+  <label>メモ（任意）</label><input id="editMemo" value="${esc(e.memo||'')}">
+  <button class="btn" onclick="saveEdit()">変更を保存</button><button class="btn g" onclick="cancelEdit()">キャンセル</button>
+  <p class="note" style="margin:8px 2px 0">保存すると変更前・変更後の内容が履歴に残ります。</p></div>`;
+}
+function readEditDraft(){
+  if(!editDraft)return;
+  const g=id=>$(id)?.value;
+  if(g('#editAmt')!==undefined)editDraft.amt=g('#editAmt');
+  if(g('#editName')!==undefined)editDraft.name=g('#editName');
+  if(g('#editCat')!==undefined)editDraft.cat=g('#editCat');
+  if(g('#editPay')!==undefined)editDraft.pay=g('#editPay');
+  if(g('#editDate')!==undefined)editDraft.date=g('#editDate');
+  if(g('#editMemo')!==undefined)editDraft.memo=g('#editMemo');
+}
+function startEdit(id){
+  const e=E.find(x=>x.id===id);if(!e)return;
+  if(isYearLocked(entryYear(e))){alert(`${entryYear(e)}年はロック中やから、先に年間集計からロック解除してね。`);return;}
+  editDraft={...e,amt:String(e.amt)};render();setTimeout(()=>window.scrollTo({top:0,behavior:'smooth'}),0);
+}
+function cancelEdit(){editDraft=null;render()}
+function editType(t){
+  readEditDraft();if(!editDraft)return;editDraft.type=t;
+  const C=t==='in'?CI:CO,P=t==='in'?PI:PO;
+  if(!C.includes(editDraft.cat))editDraft.cat=C[0]||'';
+  if(!P.includes(editDraft.pay))editDraft.pay=P[0]||'';
+  render();
+}
+async function saveEdit(){
+  if(!editDraft)return;readEditDraft();
+  const old=E.find(x=>x.id===editDraft.id);if(!old)return;
+  const amt=Number(editDraft.amt);if(!amt){$('#editAmt')?.focus();return;}
+  const d=editDraft.date||today(),oldYear=entryYear(old),newYear=String(d).slice(0,4);
+  if(isYearLocked(oldYear)||isYearLocked(newYear)){alert(`${isYearLocked(oldYear)?oldYear:newYear}年はロック中やから、先に年間集計からロック解除してね。`);return;}
+  const o={type:editDraft.type,date:d,name:String(editDraft.name||'').trim(),cat:editDraft.cat,pay:editDraft.pay,amt,memo:String(editDraft.memo||'').trim()};
+  const same=['type','date','name','cat','pay','amt','memo'].every(k=>String(old[k]??'')===String(o[k]??''));
+  if(same){editDraft=null;render();status('変更はありません');return;}
+  try{await updateEntry(old.id,o);E=E.map(x=>x.id===old.id?{...x,...o}:x);editDraft=null;ym=d.slice(0,7);render();status('✅ 明細を修正しました（変更履歴に記録済み）')}catch(e){status('⚠️ 修正失敗：'+friendlyError(e))}
+}
+function yearLockCard(year){
+  const locked=isYearLocked(year);
+  if(!lockFeatureReady)return `<div class="card lock-banner"><b>年ロック機能</b><p class="note">年ロック用のSupabase設定がまだ入っていません。先に追加SQLを実行すると使えるようになります。</p></div>`;
+  const h=historyOpen&&String(historyYear)===String(year)?historyHtml():'';
+  return `<div class="card ${locked?'lock-banner':''}"><div class="result-head"><b>${esc(year)}年の帳簿ロック</b><span class="pill">${locked?'🔒 ロック中':'🔓 編集可'}</span></div>
+  <div class="lock-state">${locked?'追加・編集・削除を止めています。後から訂正が出たら解除して修正し、終わったら再ロックできます。':'今は通常どおり追加・編集・削除できます。確定申告後など、数字を固定したい時にロックできます。'}</div>
+  <button class="btn ${locked?'warn':'g'}" onclick="toggleYearLock('${esc(year)}')">${locked?'🔓 '+esc(year)+'年のロックを解除':'🔒 '+esc(year)+'年をロック'}</button>
+  <button class="btn g" onclick="toggleHistory('${esc(year)}')">${historyOpen&&String(historyYear)===String(year)?'変更履歴を閉じる':'変更履歴を見る'}</button>${h}</div>`;
+}
+async function toggleYearLock(year){
+  if(!lockFeatureReady){alert('先にSupabaseで年ロック用SQLを実行してね。');return;}
+  const locked=isYearLocked(year);
+  const msg=locked?`${year}年のロックを解除する？\n\n解除すると、この年の追加・編集・削除がまたできるようになるよ。提出済みの申告がある場合は、修正後の数字とのズレも確認してね。`:`${year}年をロックする？\n\nロック中は、この年の追加・編集・削除ができなくなるよ。あとで解除はできる。`;
+  if(!confirm(msg))return;
+  try{
+    const row=await setYearLockDb(year,!locked);yearLocks[String(year)]=row;editDraft=null;historyOpen=false;historyRows=[];historyYear=null;render();
+    status(!locked?`🔒 ${year}年をロックしました`:`🔓 ${year}年のロックを解除しました`);
+  }catch(e){status('⚠️ 年ロックの変更に失敗：'+friendlyError(e))}
+}
+async function toggleHistory(year){
+  if(historyOpen&&String(historyYear)===String(year)){historyOpen=false;historyRows=[];historyYear=null;render();return;}
+  try{status('変更履歴を読み込み中…');historyRows=await fetchYearHistory(year);historyYear=String(year);historyOpen=true;render();status('☁️ 同期中')}catch(e){status('⚠️ 変更履歴の読み込み失敗：'+friendlyError(e))}
+}
+function fmtHistTime(v){try{return new Intl.DateTimeFormat('ja-JP',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}).format(new Date(v))}catch{return String(v||'')}}
+function histVal(k,v){if(k==='amt')return y(v);if(k==='type')return v==='in'?'収入':'支出';return String(v??'')||'（空欄）'}
+function historySummary(h){
+  if(h.action==='lock_year')return '🔒 年をロック';
+  if(h.action==='unlock_year')return '🔓 年のロックを解除';
+  const o=h.old_data||{},n=h.new_data||{};
+  if(h.action==='insert')return `➕ 追加：${esc(n.name||n.cat||'明細')} ${y(n.amt)}`;
+  if(h.action==='delete')return `🗑️ 削除：${esc(o.name||o.cat||'明細')} ${y(o.amt)}`;
+  if(h.action==='update'){
+    const labels={date:'日付',type:'収支',name:'内容',cat:'カテゴリ',pay:'支払/入金先',amt:'金額',memo:'メモ'};
+    const changes=Object.keys(labels).filter(k=>String(o[k]??'')!==String(n[k]??'')).map(k=>`${labels[k]}：${esc(histVal(k,o[k]))} → ${esc(histVal(k,n[k]))}`);
+    return `✏️ 編集：${esc(n.name||o.name||n.cat||o.cat||'明細')}<small>${changes.join(' / ')||'内容変更'}</small>`;
+  }
+  return esc(h.action||'変更');
+}
+function historyHtml(){
+  if(!historyRows.length)return '<div class="history-list"><div class="history-item empty">この年の変更履歴はまだありません</div></div>';
+  return `<div class="history-list">${historyRows.map(h=>`<div class="history-item">${historySummary(h)}<small>${esc(fmtHistTime(h.created_at))}</small></div>`).join('')}<div class="note" style="margin-top:8px">最新200件を表示しています。フルバックアップには全履歴を保存します。</div></div>`;
 }
 
 function chips(){const L=T.filter(t=>t.type===type);return `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">${L.map(t=>`<button onclick="useT('${esc(t.id)}')" style="padding:9px 12px;border-radius:20px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font-size:14px">${esc(t.name)}${t.amt?`<small style="color:var(--sub)"> ${y(t.amt)}</small>`:''}</button>`).join('')||'<small class="empty">テンプレなし（「テンプレ」タブで追加）</small>'}</div>`}
@@ -247,7 +370,7 @@ async function tfDel(id){if(!confirm('このテンプレを削除しますか？
 function mh(){return `<div class="mh"><button onclick="mv(-1)">◀</button><b style="font-size:18px">${ym.replace('-','年')}月</b><button onclick="mv(1)">▶</button></div>`}
 function mv(d){let[Y,M]=ym.split('-').map(Number);M+=d;if(M<1){M=12;Y--}if(M>12){M=1;Y++}ym=Y+'-'+String(M).padStart(2,'0');render()}
 function sumYearNav(){return `<div class="mh"><button onclick="moveSumYear(-1)">◀</button><b style="font-size:18px">${sumYear}年 年間集計</b><button onclick="moveSumYear(1)">▶</button></div>`}
-function moveSumYear(d){sumYear+=d;render()}
+function moveSumYear(d){sumYear+=d;historyOpen=false;historyRows=[];historyYear=null;render()}
 function listNav(){
   if(listPeriod==='all')return `<div class="mh"><span></span><b style="font-size:18px">全期間</b><span></span></div>`;
   if(listPeriod==='year')return `<div class="mh"><button onclick="moveListPeriod(-1)">◀</button><b style="font-size:18px">${ym.slice(0,4)}年</b><button onclick="moveListPeriod(1)">▶</button></div>`;
@@ -279,11 +402,12 @@ function clearListFilters(){listType='all';listCat='';listName='';listPay='';ren
 function sum(a){return a.reduce((s,e)=>s+(Number(e.amt)||0),0)}
 function setType(t){type=t;form={date:$('#date')?$('#date').value:today()};render()}
 async function addEntry(){
-  const amt=Number($('#amt').value);if(!amt){$('#amt').focus();return}const d=$('#date').value||today();
+  const amt=Number($('#amt').value);if(!amt){$('#amt').focus();return}const d=$('#date').value||today();const yr=String(d).slice(0,4);
+  if(isYearLocked(yr)){alert(`${yr}年はロック中やから、先に年間集計からロック解除してね。`);return;}
   const o={id:uid('e'),type,date:d,name:$('#name').value.trim(),cat:$('#cat').value,pay:$('#pay').value,amt,memo:$('#memo').value.trim()};
-  try{await insertEntry(o);E.push(o);form={date:d};ym=d.slice(0,7);render();status('✅ 追加しました')}catch(e){status('⚠️ 保存失敗：'+e.message)}
+  try{await insertEntry(o);E.push(o);form={date:d};ym=d.slice(0,7);render();status('✅ 追加しました')}catch(e){status('⚠️ 保存失敗：'+friendlyError(e))}
 }
-async function delEntry(id){if(!confirm('削除しますか？'))return;try{await deleteEntry(id);E=E.filter(e=>e.id!==id);render();status('✅ 削除しました')}catch(e){status('⚠️ 削除失敗：'+e.message)}}
+async function delEntry(id){const e=E.find(x=>x.id===id);if(!e)return;const yr=entryYear(e);if(isYearLocked(yr)){alert(`${yr}年はロック中やから、先に年間集計からロック解除してね。`);return;}if(!confirm('この明細を削除しますか？\n削除した内容も変更履歴に残ります。'))return;try{await deleteEntry(id);E=E.filter(e=>e.id!==id);if(editDraft?.id===id)editDraft=null;render();status('✅ 削除しました（変更履歴に記録済み）')}catch(e){status('⚠️ 削除失敗：'+friendlyError(e))}}
 function downloadCsv(rows,filename){
   const h='日付,収支,内容,カテゴリ,金額,支払/入金先,メモ\n';
   const b=[...rows].sort((p,q)=>String(p.date).localeCompare(String(q.date))).map(e=>[e.date,e.type==='in'?'収入':'支出',e.name,e.cat,e.amt,e.pay,e.memo].map(v=>'"'+String(v||'').replace(/"/g,'""')+'"').join(',')).join('\n');
@@ -292,11 +416,17 @@ function downloadCsv(rows,filename){
 function csv(){downloadCsv(E,'ledger-all-'+today()+'.csv')}
 function csvFiltered(){downloadCsv(getListFiltered(),'ledger-filtered-'+today()+'.csv')}
 
-function fullBackup(){
+async function fullBackup(){
   try{
+    status('バックアップを作成中…');
+    let locks=[],audit=[];
+    if(lockFeatureReady){
+      locks=await fetchAllRows('year_locks','year,locked,locked_at,unlocked_at','year',true);
+      audit=await fetchAllRows('ledger_audit_log','id,action,entry_id,year,old_data,new_data,created_at','id',true);
+    }
     const data={
       format:'studio-ledger-backup',
-      version:1,
+      version:2,
       exported_at:new Date().toISOString(),
       settings:{
         income_categories:[...CI],
@@ -305,14 +435,16 @@ function fullBackup(){
         expense_methods:[...PO]
       },
       templates:T.map(t=>({id:t.id,type:t.type,name:t.name,cat:t.cat,amt:Number(t.amt)||0,pay:t.pay||''})),
-      entries:E.map(e=>({id:e.id,type:e.type,date:e.date,name:e.name||'',cat:e.cat,pay:e.pay||'',amt:Number(e.amt)||0,memo:e.memo||''}))
+      entries:E.map(e=>({id:e.id,type:e.type,date:e.date,name:e.name||'',cat:e.cat,pay:e.pay||'',amt:Number(e.amt)||0,memo:e.memo||''})),
+      year_locks:locks,
+      audit_log:audit
     };
     const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json;charset=utf-8'});
     const u=URL.createObjectURL(blob),a=document.createElement('a');
     a.href=u;a.download='studio-ledger-backup-'+today()+'.json';document.body.appendChild(a);a.click();a.remove();
     setTimeout(()=>URL.revokeObjectURL(u),1000);
     status('✅ フルバックアップを保存しました');
-  }catch(e){status('⚠️ バックアップ失敗：'+e.message)}
+  }catch(e){status('⚠️ バックアップ失敗：'+friendlyError(e))}
 }
 
 async function importPrivateData(ev){
@@ -330,11 +462,11 @@ async function importPrivateData(ev){
   }catch(e){status('⚠️ 読み込み失敗：'+e.message)}
 }
 
-$('#tabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{tab=b.dataset.t;tf=null;$('#tabs').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));render()});
+$('#tabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{tab=b.dataset.t;tf=null;editDraft=null;$('#tabs').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));render()});
 document.addEventListener('input',e=>{const m={amt:'amt',name:'name',memo:'memo',date:'date'};if(m[e.target.id])form[m[e.target.id]]=e.target.value});
 document.addEventListener('change',e=>{if(e.target.id==='cat')form.cat=e.target.value;if(e.target.id==='pay')form.pay=e.target.value});
 
-Object.assign(window,{render,setType,useT,tfNew,tfCancel,tfType,tfEdit,tfSave,tfDel,mv,sumYearNav,moveSumYear,listNav,moveListPeriod,setListFilter,clearListFilters,addEntry,delEntry,csv,csvFiltered,fullBackup});
+Object.assign(window,{render,setType,useT,tfNew,tfCancel,tfType,tfEdit,tfSave,tfDel,mv,sumYearNav,moveSumYear,listNav,moveListPeriod,setListFilter,clearListFilters,startEdit,cancelEdit,editType,saveEdit,toggleYearLock,toggleHistory,addEntry,delEntry,csv,csvFiltered,fullBackup});
 boot().catch(e=>showLogin('起動エラー：'+e.message));
 </script>
 </body>
